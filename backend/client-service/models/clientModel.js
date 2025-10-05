@@ -1,11 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+// Connect to shared database
 const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
 const db = new sqlite3.Database(dbPath);
 
+// Initialize database on first run
+db.serialize(() => {
+    // This will create tables if they don't exist
+    const initScript = require('fs').readFileSync(
+        path.join(__dirname, '../../shared-db/init.sql'), 
+        'utf8'
+    );
+    db.exec(initScript, (err) => {
+        if (err) {
+            console.error('Error initializing database:', err);
+        } else {
+            console.log('✅ Database initialized successfully');
+        }
+    });
+});
+
 /**
- * Gets  all events from SQLite database
+ * Fetches all events from SQLite database
  * @returns {Promise<Array>} Array of event objects
  */
 const getEvents = () => {
@@ -16,7 +33,7 @@ const getEvents = () => {
                 console.error('Database error in getEvents:', err);
                 reject(err);
             } else {
-                console.log(`Fetched ${rows.length} events from database`);
+                console.log(`📋 Fetched ${rows.length} events from database`);
                 resolve(rows);
             }
         });
@@ -42,7 +59,7 @@ const purchaseTicket = (eventId) => {
             db.run(sql, [eventId], function(err) {
                 if (err) {
                     db.run('ROLLBACK');
-                    console.error('Error in purchaseTicket:', err);
+                    console.error('Database error in purchaseTicket:', err);
                     reject(err);
                 } else if (this.changes > 0) {
                     db.run('COMMIT');
@@ -50,7 +67,7 @@ const purchaseTicket = (eventId) => {
                     resolve(true);
                 } else {
                     db.run('ROLLBACK');
-                    console.log(`No tickets are available for this event ${eventId}`);
+                    console.log(`No tickets available for event ${eventId}`);
                     resolve(false);
                 }
             });
