@@ -1,7 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { listEvents } = require('../controllers/controller');
 
-router.get('/events', listEvents);
+/**
+ * Admin routes for event management
+ * Defines REST API endpoints for admin operations
+ */
+module.exports = function(adminController) {
 
-module.exports = router;
+    /**
+     * POST /api/admin/events
+     * Creates a new event
+     * Expects JSON body: { name: string, date: string, ticket_count: number }
+     */
+    router.post('/events', (req, res) => adminController.createEvent(req, res));
+
+    return router;
+};
