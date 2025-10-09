@@ -119,7 +119,7 @@ const getEvents = () => {
                 console.error('Database error in getEvents:', err);
                 reject(err);
             } else {
-                console.log(`📋 Admin fetched ${rows.length} events from database`);
+                console.log(` Admin fetched ${rows.length} events from database`);
                 resolve(rows);
             }
         });
