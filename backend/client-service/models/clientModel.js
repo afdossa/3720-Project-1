@@ -1,20 +1,20 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Connect to shared database
+//Connect to shared database system in sql lite
 const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
 const db = new sqlite3.Database(dbPath);
 
-// Initialize database on first run
+//initialize database on first run
 db.serialize(() => {
-    // This will create tables if they don't exist
+    //this will create tables if they don't exist
     const initScript = require('fs').readFileSync(
         path.join(__dirname, '../../shared-db/init.sql'), 
         'utf8'
     );
     db.exec(initScript, (err) => {
         if (err) {
-            console.error('Error initializing database:', err);
+            console.error('Database could not be created:', err);
         } else {
             console.log('Database initialized successfully');
         }
@@ -33,7 +33,7 @@ const getEvents = () => {
                 console.error('Database error in getEvents:', err);
                 reject(err);
             } else {
-                console.log(`📋 Fetched ${rows.length} events from database`);
+                console.log(`Fetched ${rows.length} events from database`);
                 resolve(rows);
             }
         });
