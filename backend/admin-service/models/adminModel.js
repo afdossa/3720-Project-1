@@ -97,7 +97,7 @@ const deleteEvent = (eventId) => {
                 console.error('Database error in deleteEvent:', err);
                 reject(err);
             } else if (this.changes > 0) {
-                console.log(`🗑️ Deleted event ${eventId}`);
+                console.log(`Deleted event ${eventId}`);
                 resolve(true);
             } else {
                 console.log(`Event ${eventId} not found for deletion`);
@@ -108,8 +108,8 @@ const deleteEvent = (eventId) => {
 };
 
 /**
- * Gets all events from database
- * @returns {Promise<Array>} Array of event objects
+ *Gets all events from database
+ *@returns {Promise<Array>} Array of event objects
  */
 const getEvents = () => {
     return new Promise((resolve, reject) => {
@@ -119,7 +119,7 @@ const getEvents = () => {
                 console.error('Database error in getEvents:', err);
                 reject(err);
             } else {
-                console.log(` Admin fetched ${rows.length} events from database`);
+                console.log(`Admin fetched ${rows.length} events from database`);
                 resolve(rows);
             }
         });
