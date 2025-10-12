@@ -2,35 +2,60 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
-  const [events, setEvents] = useState([]);
+    const [events, setEvents] = useState([]);
 
-  // Fetch events from the backend when the component loads
-  useEffect(() => {
-    fetch('http://localhost:5000/api/events')
-        .then((res) => res.json())
-        .then((data) => setEvents(data))
-        .catch((err) => console.error(err));
-  }, []);
+    const fetchEvents = () => {
+        fetch('http://localhost:6001/api/events')
+            .then((res) => res.json())
+            .then((data) => setEvents(data))
+            .catch((err) => console.error('Error fetching events:', err));
+    };
 
-  // Handle ticket purchase
-  const buyTicket = (eventName) => {
-    alert(`Ticket purchased for: ${eventName}`);
-  };
+    useEffect(() => {
+        fetchEvents();
+    }, []);
 
-  return (
-      <div className="App">
-        <h1>Clemson Campus Events</h1>
-        <ul>
-          {events.map((event) => (
-              <li key={event.id}>
-                {event.name} - {event.date}{' '}
-                <button onClick={() => buyTicket(event.name)}>Buy Ticket</button>
-              </li>
-          ))}
-        </ul>
-      </div>
-  );
+    const buyTicket = async (id, name) => {
+        try {
+            const res = await fetch(`http://localhost:6001/api/events/${id}/buy`, {
+                method: 'PATCH',
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert(`Ticket purchased for: ${name}\nRemaining: ${data.tickets_remaining}`);
+                fetchEvents();
+            } else {
+                alert(data.message || 'Unable to purchase ticket.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error purchasing ticket.');
+        }
+    };
+
+    return (
+        <div className="App">
+            <h1>Clemson Campus Events</h1>
+            {events.length === 0 ? (
+                <p>Loading events...</p>
+            ) : (
+                <ul>
+                    {events.map((event) => (
+                        <li key={event.id}>
+                            <strong>{event.name}</strong> - {event.date} - {event.tickets_available} left{' '}
+                            <button
+                                disabled={event.tickets_available === 0}
+                                onClick={() => buyTicket(event.id, event.name)}
+                            >
+                                {event.tickets_available > 0 ? 'Buy Ticket' : 'Sold Out'}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
 }
 
 export default App;
-
