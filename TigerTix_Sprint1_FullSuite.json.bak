@@ -1,0 +1,184 @@
+﻿{
+  "info": {
+    "_postman_id": "f07af1d5-25b9-4d09-a417-99d511b3d3a4",
+    "name": "TigerTix Sprint 1 - Full API Suite (V3)",
+    "description": "Fixed and verified Postman collection for TigerTix Sprint 1. Includes Admin and Client microservices with working variable handling and correct HTTP routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin Service (Port 5001) - Event Management",
+      "item": [
+        {
+          "name": "1. POST Create Initial Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\"name\\": \\"Clemson Test Event for Postman\\",\\n  \\"date\\": \\"2025-11-15\\",\\n  \\"tickets_available\\": 50\\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5001/api/admin/events",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "admin", "events"]
+            },
+            "description": "Creates a new event and saves its ID for the client tests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 or 200', () => pm.expect(pm.response.code).to.be.oneOf([201, 200]));",
+                  "let data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "    pm.environment.set('eventId', data.id);",
+                  "    pm.test('Event ID stored for next tests', () => pm.expect(pm.environment.get('eventId')).to.not.be.undefined);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. GET All Admin Events",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:5001/api/admin/events",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5001",
+              "path": ["api", "admin", "events"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "let events = pm.response.json();",
+                  "pm.test('Response is an array', () => pm.expect(events).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Client Service (Port 6001) - View & Purchase",
+      "item": [
+        {
+          "name": "3. GET All Events (Initial Count)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:6001/api/events",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "6001",
+              "path": ["api", "events"]
+            },
+            "description": "Retrieves list of events and saves the initial ticket count."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "let data = pm.response.json();",
+                  "pm.test('Response is an array', () => pm.expect(data).to.be.an('array'));",
+                  "let eventId = pm.environment.get('eventId');",
+                  "if (eventId) {",
+                  "    let event = data.find(e => e.id === parseInt(eventId));",
+                  "    if (event) {",
+                  "        pm.environment.set('ticketsBefore', event.tickets_available);",
+                  "        pm.test('Saved initial ticket count', () => pm.expect(event.tickets_available).to.be.a('number'));",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. POST Purchase Ticket (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "http://localhost:6001/api/events/{{eventId}}/purchase",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "6001",
+              "path": ["api", "events", "{{eventId}}", "purchase"]
+            },
+            "description": "Buys one ticket successfully for the selected event."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "let data = pm.response.json();",
+                  "pm.test('Response includes tickets_remaining', () => pm.expect(data).to.have.property('tickets_remaining'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. GET Verify Ticket Count Decreased",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:6001/api/events",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "6001",
+              "path": ["api", "events"]
+            },
+            "description": "Verifies ticket count decreased by 1 after purchase."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "let events = pm.response.json();",
+                  "let eventId = pm.environment.get('eventId');",
+                  "let ticketsBefore = parseInt(pm.environment.get('ticketsBefore'));",
+                  "let event = events.find(e => e.id === parseInt(eventId));",
+                  "if (event) {",
+                  "    pm.test('Ticket count decreased by 1', () => {",
+                  "        pm.expect(event.tickets_available).to.eql(ticketsBefore - 1);",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Event found', () => pm.expect(event).to.not.be.undefined);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
