@@ -1,0 +1,7 @@
+{
+  "name": "Clemson Campus Events & Assistant",
+  "description": "An application to display and purchase tickets for campus events, with a separate AI-powered assistant for general questions.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
