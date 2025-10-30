@@ -12,7 +12,7 @@ const API_BASE_URL = 'http://localhost:6001/api';
 
 type ActiveTab = 'events' | 'chat';
 
-function App() {
+export default function App() {
     // --- State for Event Listing ---
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoadingEvents, setIsLoadingEvents] = useState(true);
@@ -446,5 +446,3 @@ function App() {
         </div>
     );
 }
-
-export default App;

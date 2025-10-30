@@ -1,3 +1,5 @@
+
+
 import { GoogleGenAI, Chat, FunctionDeclaration, Type } from '@google/genai';
 import { Event, BookingProposal, BotResponse } from '../types';
 
@@ -5,12 +7,8 @@ let ai: GoogleGenAI;
 
 function getGoogleAI() {
   if (!ai) {
-    // ✅ FIXED: use import.meta.env.VITE_API_KEY instead of process.env.API_KEY for Vite/React frontend
-    const apiKey = import.meta.env.VITE_API_KEY;
-    if (!apiKey) {
-      throw new Error('❌ Missing API key: make sure VITE_API_KEY is set in .env.local');
-    }
-    ai = new GoogleGenAI({ apiKey });
+    // FIX: The API key must be obtained from process.env.API_KEY.
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return ai;
 }
@@ -79,26 +77,21 @@ export const sendMessage = async (
       return {
         type: 'proposal',
         text: `Great! I'm ready to book ${ticketCount} ticket(s) for "${eventName}". Please confirm to proceed.`,
-        proposal: { eventName, ticketCount },
+        proposal: { eventName, ticketCount }
       };
     }
 
     if (functionCall.name === 'list_events') {
       const { name } = functionCall;
-      const eventList = events
-          .map(
-              (e) =>
-                  `- ${e.name} on ${e.date} (${e.tickets_available} tickets available)`
-          )
-          .join('\n');
+      const eventList = events.map(e => `- ${e.name} on ${e.date} (${e.tickets_available} tickets available)`).join('\n');
 
       const functionResponsePart = {
         functionResponse: {
           name,
           response: {
-            result: `Here are the available events:\n${eventList}`,
-          },
-        },
+            result: `Here are the available events:\n${eventList}`
+          }
+        }
       };
 
       response = await chat.sendMessage({ message: [functionResponsePart] });
@@ -125,7 +118,7 @@ export const confirmBooking = async (
     ],
   });
   return response.text;
-};
+}
 
 export const cancelBooking = async (
     chat: Chat,
@@ -144,4 +137,4 @@ export const cancelBooking = async (
     ],
   });
   return response.text;
-};
+}
