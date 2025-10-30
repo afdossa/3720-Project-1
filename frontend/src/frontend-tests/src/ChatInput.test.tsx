@@ -1,3 +1,4 @@
+// FIX: Add a triple-slash directive to include Jest type definitions.
 /// <reference types="jest" />
 
 import React from 'react';
@@ -8,6 +9,7 @@ import { ChatInput } from '../../components/ChatInput.tsx';
 describe('ChatInput Component', () => {
   const mockOnSendMessage = jest.fn();
   const mockOnChange = jest.fn();
+  const user = userEvent.setup();
 
   const defaultProps = {
     onSendMessage: mockOnSendMessage,
@@ -32,7 +34,7 @@ describe('ChatInput Component', () => {
     render(<ChatInput {...defaultProps} value="initial" />);
     const input = screen.getByPlaceholderText('Type or click the mic to talk...');
 
-    await userEvent.type(input, ' text');
+    await user.type(input, ' text');
 
     expect(mockOnChange).toHaveBeenCalledWith('initial text');
   });
@@ -50,7 +52,7 @@ describe('ChatInput Component', () => {
   test('calls onSendMessage on form submit', async () => {
     render(<ChatInput {...defaultProps} value="Test message" />);
 
-    await userEvent.click(screen.getByLabelText('Send message'));
+    await user.click(screen.getByLabelText('Send message'));
 
     expect(mockOnSendMessage).toHaveBeenCalledTimes(1);
     expect(mockOnSendMessage).toHaveBeenCalledWith('Test message');
@@ -76,7 +78,7 @@ describe('ChatInput Component', () => {
     render(<ChatInput {...defaultProps} />);
     const micButton = screen.getByLabelText('Start recording');
 
-    await userEvent.click(micButton);
+    await user.click(micButton);
 
     const recognitionInstance = (window.SpeechRecognition as jest.Mock).mock.results[0].value;
     expect(recognitionInstance.start).toHaveBeenCalledTimes(1);
@@ -86,6 +88,7 @@ describe('ChatInput Component', () => {
     render(<ChatInput {...defaultProps} />);
     const recognitionInstance = (window.SpeechRecognition as jest.Mock).mock.results[0].value;
 
+    // Simulate a speech result event
     const mockResultEvent = {
       results: [[{ transcript: 'Voice input test' }]],
     };

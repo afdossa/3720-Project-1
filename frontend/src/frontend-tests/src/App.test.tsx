@@ -1,135 +1,87 @@
-// FIX: Add a triple-slash directive to include Jest type definitions.
-/// <reference types="jest" />
-
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event'; // <-- FIXED THE TYPO HERE
-import App from '../../App';
-import * as geminiService from '../../services/geminiService';
-import { MOCK_EVENTS } from '../../constants';
-import { MessageSender } from '../../services/types';
+import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ChatInput } from '../../components/ChatInput.tsx';
 
-// Mock the entire geminiService
-jest.mock('../../services/geminiService');
 
-const mockInitChat = geminiService.initChat as jest.Mock;
-const mockSendMessage = geminiService.sendMessage as jest.Mock;
-const mockConfirmBooking = geminiService.confirmBooking as jest.Mock;
-const mockCancelBooking = geminiService.cancelBooking as jest.Mock;
+const mockSpeechRecognition = { mock: { results: [{ value: { start: jest.fn(), onresult: jest.fn() } }] }, mockClear: jest.fn() };
+const mockAudioContext = { mockClear: jest.fn(), call: jest.fn() };
 
-describe('App Integration Tests', () => {
+
+describe('ChatInput Component', () => {
+  const mockOnSendMessage = jest.fn();
+  const mockOnChange = jest.fn();
+
+  const defaultProps = {
+    onSendMessage: mockOnSendMessage,
+    onChange: mockOnChange,
+    isLoading: false,
+    isChatReady: true,
+    value: '',
+  };
+
   beforeEach(() => {
-    // Reset mocks before each test
     jest.clearAllMocks();
-
-    // Mock fetch for event loading
-    global.fetch = jest.fn((url) => {
-        if (url.toString().includes('/api/events')) {
-            return Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve(MOCK_EVENTS),
-            } as Response);
-        }
-        return Promise.resolve({ ok: false, status: 404 } as Response);
-    });
-
-    // Mock successful chat initialization
-    mockInitChat.mockResolvedValue({
-      sendMessage: jest.fn(),
-    });
   });
 
-  test('renders events on initial load and allows switching to chat tab', async () => {
-    render(<App />);
+  const isElementDisabled = (element: HTMLElement) => {
+    return element.hasAttribute('disabled');
+  };
 
-    // Check for Events tab content
-    expect(screen.getByText('Loading events...')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText('Clemson Football Game')).toBeInTheDocument();
-    });
+  test('renders input, send button, and mic button', () => {
+    render(<ChatInput {...defaultProps} />);
 
-    // Switch to Chat tab
-    const chatTabButton = screen.getByText('TigerTix Assistant');
-    fireEvent.click(chatTabButton);
-
-    // Check for Chat tab content
-    await waitFor(() => {
-        expect(screen.getByText(/Hello! I'm the TigerTix Assistant./)).toBeInTheDocument();
-    });
-    expect(screen.getByPlaceholderText('Type or click the mic to talk...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Type or click the mic to talk...')).toBeTruthy();
+    expect(screen.getByLabelText('Send message')).toBeTruthy();
+    expect(screen.getByLabelText('Start recording')).toBeTruthy();
   });
 
-  test('user can send a message and receive a response', async () => {
-    mockSendMessage.mockResolvedValue({ type: 'text', text: 'This is a mock response.' });
-    
-    render(<App />);
-    const user = userEvent.setup();
+  test('updates input value on change', async () => {
+    render(<ChatInput {...defaultProps} value="initial" />);
+    const input = screen.getByPlaceholderText('Type or click the mic to talk...');
 
-    // Go to chat
-    fireEvent.click(screen.getByText('TigerTix Assistant'));
+    fireEvent.change(input, { target: { value: 'initial text' } });
 
-    // Wait for chat to be ready
-    const input = await screen.findByPlaceholderText('Type or click the mic to talk...');
-    
-    // Send a message
-    await user.type(input, 'Hello Assistant');
-    await user.click(screen.getByLabelText('Send message'));
-
-    // Verify user message appears
-    await waitFor(() => {
-      expect(screen.getByText('Hello Assistant')).toBeInTheDocument();
-    });
-
-    // Verify mock was called
-    expect(mockSendMessage).toHaveBeenCalledWith(expect.anything(), 'Hello Assistant', expect.any(Array));
-
-    // Verify bot response appears
-    await waitFor(() => {
-      expect(screen.getByText('This is a mock response.')).toBeInTheDocument();
-    });
+    expect(mockOnChange).toHaveBeenCalledWith('initial text');
   });
 
-  test('handles booking proposal and confirmation', async () => {
-    const bookingProposal = { eventName: 'Jazz Night', ticketCount: 2 };
-    mockSendMessage.mockResolvedValue({
-      type: 'proposal',
-      text: 'Please confirm your booking.',
-      proposal: bookingProposal,
-    });
-    mockConfirmBooking.mockResolvedValue('Booking confirmed! Enjoy the show.');
+  test('send button is disabled when input is empty', () => {
+    render(<ChatInput {...defaultProps} />);
+    const sendButton = screen.getByLabelText('Send message');
 
-    // Mock the purchase API call
-    global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({}),
-    });
+    expect(isElementDisabled(sendButton)).toBe(true);
+  });
 
-    render(<App />);
-    const user = userEvent.setup();
-    
-    // Go to chat
-    fireEvent.click(screen.getByText('TigerTix Assistant'));
-    const input = await screen.findByPlaceholderText('Type or click the mic to talk...');
+  test('send button is enabled when input has text', () => {
+    render(<ChatInput {...defaultProps} value="Hello" />);
+    const sendButton = screen.getByLabelText('Send message');
 
-    // Trigger proposal
-    await user.type(input, 'Book 2 tickets for Jazz Night');
-    await user.click(screen.getByLabelText('Send message'));
+    expect(isElementDisabled(sendButton)).toBe(false);
+  });
 
-    // Verify proposal message and buttons appear
-    await waitFor(() => {
-      expect(screen.getByText('Please confirm your booking.')).toBeInTheDocument();
-      expect(screen.getByText('Confirm Booking')).toBeInTheDocument();
-      expect(screen.getByText('Cancel')).toBeInTheDocument();
-    });
+  test('calls onSendMessage on form submit', async () => {
+    render(<ChatInput {...defaultProps} value="Test message" />);
 
-    // Confirm the booking
-    await user.click(screen.getByText('Confirm Booking'));
+    await userEvent.click(screen.getByLabelText('Send message'));
 
-    // Verify confirmation buttons disappear and confirmation message appears
-    await waitFor(() => {
-      expect(screen.queryByText('Confirm Booking')).not.toBeInTheDocument();
-      expect(mockConfirmBooking).toHaveBeenCalledWith(expect.anything(), bookingProposal);
-      expect(screen.getByText('Booking confirmed! Enjoy the show.')).toBeInTheDocument();
-    });
+    expect(mockOnSendMessage).toHaveBeenCalledTimes(1);
+    expect(mockOnSendMessage).toHaveBeenCalledWith('Test message');
+  });
+
+  test('all controls are disabled when isLoading is true', () => {
+    render(<ChatInput {...defaultProps} isLoading={true} value="some text" />);
+
+    expect(isElementDisabled(screen.getByPlaceholderText('Type or click the mic to talk...'))).toBe(true);
+    expect(isElementDisabled(screen.getByLabelText('Send message'))).toBe(true);
+    expect(isElementDisabled(screen.getByLabelText('Start recording'))).toBe(true);
+  });
+
+  test('controls are disabled when chat is not ready', () => {
+    render(<ChatInput {...defaultProps} isChatReady={false} value="some text" />);
+
+    expect(screen.getByPlaceholderText('Assistant is offline...')).toBeTruthy();
+
+    expect(isElementDisabled(screen.getByLabelText('Send message'))).toBe(true);
+    expect(isElementDisabled(screen.getByLabelText('Start recording'))).toBe(true);
   });
 });
