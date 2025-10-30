@@ -1,24 +1,25 @@
 
+
 import React from 'react';
-import type { ChatMessage, BookingProposal } from '../types';
+// Fix: Aliased the imported `ChatMessage` type to `ChatMessageType` to resolve the name collision with the `ChatMessage` component.
+import type { ChatMessage as ChatMessageType, BookingProposal } from '../types';
 import { MessageSender } from '../types';
 import { BotIcon, UserIcon } from './Icons';
-import ChatInput from "./ChatInput.tsx";
 
 interface ChatMessageProps {
-  message: ChatMessage;
-  onConfirm: (proposal: BookingProposal) => void;
-  onCancel: (proposal: BookingProposal) => void;
+    message: ChatMessageType;
+    onConfirm: (proposal: BookingProposal) => void;
+    onCancel: (proposal: BookingProposal) => void;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, onConfirm, onCancel }) => {
-  const isBot = message.sender === MessageSender.BOT;
-  const senderClass = isBot ? 'bot' : 'user';
+export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onConfirm, onCancel }) => {
+    const isBot = message.sender === MessageSender.BOT;
+    const senderClass = isBot ? 'bot' : 'user';
 
-  return (
-    <>
-      {/* Fix: Removed invalid `jsx` prop from `<style>` tag. */}
-      <style>{`
+    return (
+        <>
+            {/* Fix: Removed invalid `jsx` prop from `<style>` tag. */}
+            <style>{`
         .message-container {
             display: flex;
             align-items: flex-end;
@@ -91,34 +92,31 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onConfirm, onCancel 
             background-color: #c82333;
         }
       `}</style>
-      <div className={`message-container ${senderClass}`}>
-        {isBot && <BotIcon className="message-icon" />}
-        <div className="message-content-wrapper">
-          <div className={`message-bubble ${senderClass}`}>
-              <p>{message.text}</p>
-          </div>
-          {message.bookingProposal && (
-              <div className="confirmation-buttons">
-                  <button
-                      onClick={() => onConfirm(message.bookingProposal!)}
-                      className="confirm-button"
-                  >
-                      Confirm Booking
-                  </button>
-                  <button
-                      onClick={() => onCancel(message.bookingProposal!)}
-                      className="cancel-button"
-                  >
-                      Cancel
-                  </button>
-              </div>
-          )}
-        </div>
-        {!isBot && <UserIcon className="message-icon" />}
-      </div>
-    </>
-  );
+            <div className={`message-container ${senderClass}`}>
+                {isBot && <BotIcon className="message-icon" />}
+                <div className="message-content-wrapper">
+                    <div className={`message-bubble ${senderClass}`}>
+                        <p>{message.text}</p>
+                    </div>
+                    {message.bookingProposal && (
+                        <div className="confirmation-buttons">
+                            <button
+                                onClick={() => onConfirm(message.bookingProposal!)}
+                                className="confirm-button"
+                            >
+                                Confirm Booking
+                            </button>
+                            <button
+                                onClick={() => onCancel(message.bookingProposal!)}
+                                className="cancel-button"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    )}
+                </div>
+                {!isBot && <UserIcon className="message-icon" />}
+            </div>
+        </>
+    );
 };
-
-export default ChatInput;
-export default ChatMessage;

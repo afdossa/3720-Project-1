@@ -1,11 +1,10 @@
-import { GoogleGenAI, Chat, FunctionDeclaration, Type, GenerateContentResponse } from '@google/genai';
+import { GoogleGenAI, Chat, FunctionDeclaration, Type } from '@google/genai';
 import { Event, BookingProposal, BotResponse } from '../types';
 
 let ai: GoogleGenAI;
 
 function getGoogleAI() {
   if (!ai) {
-    // FIX: Per Google GenAI coding guidelines, the API key must be sourced directly from process.env.API_KEY.
     ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return ai;
@@ -59,43 +58,10 @@ export const initChat = async (): Promise<Chat> => {
   });
 };
 
-const handleFunctionCall = async (
-  chat: Chat, 
-  functionCall: any, 
-  events: Event[]
-): Promise<GenerateContentResponse> => {
-  const { name, args } = functionCall;
-  let functionResponse;
-
-  if (name === 'list_events') {
-    const eventList = events.map(e => `- ${e.name} on ${e.date} (${e.tickets_available} tickets available)`).join('\n');
-    functionResponse = {
-      name,
-      response: {
-        content: `Here are the available events:\n${eventList}`
-      }
-    };
-  } else {
-    // For propose_booking, we don't respond to the model yet.
-    // The App component will handle the confirmation and then send the response.
-    // This part of the logic is handled by returning a special response type.
-    throw new Error('propose_booking should be handled by the caller');
-  }
-  
-  // FIX: The `chat.sendMessage` method expects an object with a `message` property containing the parts array.
-  return await chat.sendMessage({
-    message: [
-      {
-        functionResponse,
-      },
-    ],
-  });
-}
-
 export const sendMessage = async (
-  chat: Chat,
-  message: string,
-  events: Event[]
+    chat: Chat,
+    message: string,
+    events: Event[]
 ): Promise<BotResponse> => {
   let response = await chat.sendMessage({ message });
 
@@ -103,7 +69,6 @@ export const sendMessage = async (
 
   if (functionCall) {
     if (functionCall.name === 'propose_booking') {
-      // FIX: Add explicit type casting to resolve 'unknown' type errors.
       const eventName = functionCall.args.eventName as string;
       const ticketCount = functionCall.args.ticketCount as number;
       return {
@@ -111,9 +76,22 @@ export const sendMessage = async (
         text: `Great! I'm ready to book ${ticketCount} ticket(s) for "${eventName}". Please confirm to proceed.`,
         proposal: { eventName, ticketCount }
       };
-    } else {
-      // Handle other function calls like list_events
-      response = await handleFunctionCall(chat, functionCall, events);
+    }
+
+    if (functionCall.name === 'list_events') {
+      const { name } = functionCall;
+      const eventList = events.map(e => `- ${e.name} on ${e.date} (${e.tickets_available} tickets available)`).join('\n');
+
+      const functionResponsePart = {
+        functionResponse: {
+          name,
+          response: {
+            result: `Here are the available events:\n${eventList}`
+          }
+        }
+      };
+
+      response = await chat.sendMessage({ message: [functionResponsePart] });
     }
   }
 
@@ -121,17 +99,16 @@ export const sendMessage = async (
 };
 
 export const confirmBooking = async (
-  chat: Chat,
-  proposal: BookingProposal
+    chat: Chat,
+    proposal: BookingProposal
 ): Promise<string> => {
-  // FIX: The `chat.sendMessage` method expects an object with a `message` property containing the parts array.
   const response = await chat.sendMessage({
     message: [
       {
         functionResponse: {
           name: 'propose_booking',
           response: {
-            content: `Booking confirmed by user for ${proposal.ticketCount} tickets to ${proposal.eventName}.`,
+            result: `Booking confirmed by user for ${proposal.ticketCount} tickets to ${proposal.eventName}.`,
           },
         },
       },
@@ -141,17 +118,16 @@ export const confirmBooking = async (
 }
 
 export const cancelBooking = async (
-  chat: Chat,
-  proposal: BookingProposal
+    chat: Chat,
+    proposal: BookingProposal
 ): Promise<string> => {
-  // FIX: The `chat.sendMessage` method expects an object with a `message` property containing the parts array.
   const response = await chat.sendMessage({
     message: [
       {
         functionResponse: {
           name: 'propose_booking',
           response: {
-            content: `Booking cancelled by user for ${proposal.ticketCount} tickets to ${proposal.eventName}.`,
+            result: `Booking cancelled by user for ${proposal.ticketCount} tickets to ${proposal.eventName}.`,
           },
         },
       },

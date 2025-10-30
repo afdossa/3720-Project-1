@@ -4,8 +4,8 @@ import type { ChatMessage as ChatMessageType, BookingProposal, Event } from './t
 
 // Import services and components
 import { initChat, sendMessage, confirmBooking, cancelBooking } from './services/geminiService';
-import ChatMessage from './components/ChatMessage';
-import ChatInput from './components/ChatInput';
+import { ChatMessage } from './components/ChatMessage';
+import { ChatInput } from './components/ChatInput';
 import { MessageSender } from './types';
 
 const API_BASE_URL = 'http://localhost:6001/api';
@@ -98,7 +98,7 @@ function App() {
     // New handler for direct purchase from the events list
     const handleDirectPurchase = async (eventId: number) => {
         if (purchasingEventId) return; // Prevent multiple clicks while one is in progress
-        
+
         setPurchasingEventId(eventId);
         try {
             const result = await purchaseSingleTicket(eventId);
@@ -109,8 +109,8 @@ function App() {
                 alert(`Purchase failed: ${result.message}`);
             }
         } catch (err) {
-             console.error('Error during direct purchase flow:', err);
-             alert('An unexpected error occurred while purchasing. Please try again.');
+            console.error('Error during direct purchase flow:', err);
+            alert('An unexpected error occurred while purchasing. Please try again.');
         } finally {
             setPurchasingEventId(null);
         }
@@ -121,7 +121,7 @@ function App() {
         e.dataTransfer.setData('application/json', JSON.stringify(event));
         e.dataTransfer.effectAllowed = 'move';
     };
-    
+
     const handleDragOver = (e: React.DragEvent<HTMLButtonElement>) => {
         e.preventDefault(); // Necessary to allow dropping
         setIsDropTarget(true);
@@ -159,8 +159,8 @@ function App() {
                     const isSoldOut = event.tickets_available === 0;
                     const isPurchasing = purchasingEventId === event.id;
                     return (
-                        <li 
-                            key={event.id} 
+                        <li
+                            key={event.id}
                             className="event-item"
                             draggable="true"
                             onDragStart={(e) => handleDragStart(e, event)}
@@ -217,8 +217,8 @@ function App() {
         }
 
         if (eventToBook.tickets_available < proposal.ticketCount) {
-             addMessage(MessageSender.BOT, `Sorry, there are not enough tickets available for "${proposal.eventName}". Only ${eventToBook.tickets_available} left.`);
-             return;
+            addMessage(MessageSender.BOT, `Sorry, there are not enough tickets available for "${proposal.eventName}". Only ${eventToBook.tickets_available} left.`);
+            return;
         }
 
         setChatMessages(prev => prev.map(msg => msg.bookingProposal ? { ...msg, bookingProposal: undefined } : msg));
@@ -260,7 +260,7 @@ function App() {
         }
     };
 
-     useEffect(() => {
+    useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [chatMessages]);
 
@@ -393,7 +393,7 @@ function App() {
                 }
             `}</style>
             <h1>Clemson Campus Events</h1>
-            
+
             <div className="tab-navigation">
                 <button
                     className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
@@ -433,9 +433,9 @@ function App() {
                             ))}
                             <div ref={messagesEndRef} />
                         </div>
-                        <ChatInput 
-                            onSendMessage={handleSendMessage} 
-                            isLoading={isChatLoading} 
+                        <ChatInput
+                            onSendMessage={handleSendMessage}
+                            isLoading={isChatLoading}
                             value={chatInputText}
                             onChange={setChatInputText}
                         />

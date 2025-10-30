@@ -16,7 +16,7 @@ interface ChatInputProps {
   onChange: (value: string) => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, onChange }) => {
+export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, onChange }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isApiSupported, setIsApiSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -201,5 +201,3 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, 
       </>
   );
 };
-
-export default ChatInput;
