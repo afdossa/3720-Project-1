@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import type { Chat } from '@google/genai';
-import type { ChatMessage as ChatMessageType, BookingProposal, Event } from './types.ts';
+import type { ChatMessage as ChatMessageType, BookingProposal, Event } from './types';
 
 // Import services and components
-import { initChat, sendMessage, confirmBooking, cancelBooking } from './services/geminiService.ts';
-import ChatMessage from './components/ChatMessage.tsx';
-import ChatInput from './components/ChatInput.tsx';
-import { MessageSender } from './types.ts';
+import { initChat, sendMessage, confirmBooking, cancelBooking } from './services/geminiService';
+import ChatMessage from './components/ChatMessage';
+import ChatInput from './components/ChatInput';
+import { MessageSender } from './types';
 
 const API_BASE_URL = 'http://localhost:6001/api';
 

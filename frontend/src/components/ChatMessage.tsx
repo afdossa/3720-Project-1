@@ -1,8 +1,9 @@
 
 import React from 'react';
-import type { ChatMessage, BookingProposal } from '../types.ts';
-import { MessageSender } from '../types.ts';
-import { BotIcon, UserIcon } from './Icons.tsx';
+import type { ChatMessage, BookingProposal } from '../types';
+import { MessageSender } from '../types';
+import { BotIcon, UserIcon } from './Icons';
+import ChatInput from "./ChatInput.tsx";
 
 interface ChatMessageProps {
   message: ChatMessage;
@@ -119,4 +120,5 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, onConfirm, onCancel 
   );
 };
 
+export default ChatInput;
 export default ChatMessage;

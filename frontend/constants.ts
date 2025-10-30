@@ -1,5 +1,5 @@
 
-import { Event } from './src/types.ts';
+import { Event } from './src/types';
 
 // Mock data is used for the "Offline Mode" when the backend is not available.
 export const MOCK_EVENTS: Event[] = [

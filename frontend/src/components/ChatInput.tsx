@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SendIcon, MicrophoneIcon } from './Icons.tsx';
+import { SendIcon, MicrophoneIcon } from './Icons';
 
 // Add this to handle vendor prefixes for SpeechRecognition
 declare global {
@@ -51,7 +51,6 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, 
   }, [onChange]);
 
   const playBeep = () => {
-    // Ensure AudioContext is available, also checking for webkit prefix
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     if (!audioContext) return;
 
@@ -62,7 +61,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, 
     gainNode.connect(audioContext.destination);
 
     gainNode.gain.value = 0.1;
-    oscillator.frequency.value = 880; // A5 note
+    oscillator.frequency.value = 880;
     oscillator.type = 'sine';
 
     oscillator.start();
@@ -84,16 +83,18 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, 
     }
   };
 
+  const safeValue = value ?? '';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (value.trim() && !isLoading) {
-      onSendMessage(value);
+    if (safeValue.trim() && !isLoading) {
+      onSendMessage(safeValue);
     }
   };
 
   return (
-    <>
-      <style>{`
+      <>
+        <style>{`
         .chat-input-form {
             display: flex;
             gap: 10px;
@@ -168,36 +169,36 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, 
           }
         }
       `}</style>
-      <form onSubmit={handleSubmit} className="chat-input-form">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Type or click the mic to talk..."
-          disabled={isLoading}
-          className="chat-input"
-          autoComplete="off"
-        />
-        <button
-          type="button"
-          onClick={handleMicClick}
-          disabled={isLoading || !isApiSupported}
-          className={`mic-button ${isRecording ? 'recording' : ''}`}
-          aria-label={isRecording ? "Stop recording" : "Start recording"}
-          title={isApiSupported ? 'Use microphone' : 'Voice input not supported by your browser'}
-        >
-          <MicrophoneIcon style={{ width: '24px', height: '24px' }} />
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading || !value.trim()}
-          className="send-button"
-          aria-label="Send message"
-        >
-          <SendIcon style={{ width: '24px', height: '24px' }} />
-        </button>
-      </form>
-    </>
+        <form onSubmit={handleSubmit} className="chat-input-form">
+          <input
+              type="text"
+              value={safeValue}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="Type or click the mic to talk..."
+              disabled={isLoading}
+              className="chat-input"
+              autoComplete="off"
+          />
+          <button
+              type="button"
+              onClick={handleMicClick}
+              disabled={isLoading || !isApiSupported}
+              className={`mic-button ${isRecording ? 'recording' : ''}`}
+              aria-label={isRecording ? "Stop recording" : "Start recording"}
+              title={isApiSupported ? 'Use microphone' : 'Voice input not supported by your browser'}
+          >
+            <MicrophoneIcon style={{ width: '24px', height: '24px' }} />
+          </button>
+          <button
+              type="submit"
+              disabled={isLoading || !safeValue.trim()}
+              className="send-button"
+              aria-label="Send message"
+          >
+            <SendIcon style={{ width: '24px', height: '24px' }} />
+          </button>
+        </form>
+      </>
   );
 };
 

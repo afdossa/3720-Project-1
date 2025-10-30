@@ -1,5 +1,5 @@
 import { GoogleGenAI, Chat, FunctionDeclaration, Type, GenerateContentResponse } from '@google/genai';
-import { Event, BookingProposal, BotResponse } from '../types.ts';
+import { Event, BookingProposal, BotResponse } from '../types';
 
 let ai: GoogleGenAI;
 
