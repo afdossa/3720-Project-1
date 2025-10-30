@@ -1,22 +1,16 @@
-// FIX: Add a triple-slash directive to include Jest type definitions.
-/// <reference types="jest" />
-
 import { GoogleGenAI, Chat, FunctionCall } from '@google/genai';
 import { initChat, sendMessage, confirmBooking, cancelBooking } from '../../services/geminiService.ts';
 import { MOCK_EVENTS } from '../../../../../../../../Downloads/clemson-campus-events-&-assistant (5)/src/constants.ts';
 
-// Mock the entire library. Jest will automatically mock the exports.
 jest.mock('@google/genai');
 
-// Cast the auto-mocked constructor to a Jest Mock type for type-safety
 const MockedGoogleGenAI = GoogleGenAI as jest.Mock;
 
 describe('geminiService', () => {
     let mockSendMessage: jest.Mock;
     let mockCreateChat: jest.Mock;
+    let mockChat: Chat;
 
-    // Before each test, we reset the mocks and provide a fresh implementation.
-    // This prevents tests from interfering with each other.
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -25,7 +19,10 @@ describe('geminiService', () => {
             sendMessage: mockSendMessage,
         });
 
-        // We define what "new GoogleGenAI()" should return for each test.
+        mockChat = {
+            sendMessage: mockSendMessage,
+        } as unknown as Chat;
+
         MockedGoogleGenAI.mockImplementation(() => {
             return {
                 chats: {
@@ -49,9 +46,6 @@ describe('geminiService', () => {
     });
 
     describe('sendMessage', () => {
-        // The chat object passed to sendMessage is not actually used because we mock the instance methods.
-        const mockChat = {} as Chat;
-
         it('should send a simple text message and return a text response', async () => {
             mockSendMessage.mockResolvedValue({ text: 'Hello there!' });
 
@@ -64,8 +58,8 @@ describe('geminiService', () => {
         it('should handle a list_events function call', async () => {
             const listEventsCall: FunctionCall = { name: 'list_events', args: {} };
             mockSendMessage
-                .mockResolvedValueOnce({ functionCalls: [listEventsCall] }) // First call
-                .mockResolvedValueOnce({ text: 'Here are the events.' }); // Second call
+                .mockResolvedValueOnce({ functionCalls: [listEventsCall] })
+                .mockResolvedValueOnce({ text: 'Here are the events.' });
 
             const response = await sendMessage(mockChat, 'Show events', MOCK_EVENTS);
 
@@ -103,7 +97,6 @@ describe('geminiService', () => {
 
     describe('confirmBooking', () => {
         it('should send a confirmation function response', async () => {
-            const mockChat = {} as Chat;
             const proposal = { eventName: 'Test Event', ticketCount: 1 };
             mockSendMessage.mockResolvedValue({ text: 'Confirmed!' });
 
@@ -123,7 +116,6 @@ describe('geminiService', () => {
 
     describe('cancelBooking', () => {
         it('should send a cancellation function response', async () => {
-            const mockChat = {} as Chat;
             const proposal = { eventName: 'Test Event', ticketCount: 1 };
             mockSendMessage.mockResolvedValue({ text: 'Cancelled.' });
 
