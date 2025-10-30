@@ -12,11 +12,12 @@ declare global {
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   isLoading: boolean;
+  isChatReady: boolean;
   value: string;
   onChange: (value: string) => void;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, value, onChange }) => {
+export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatReady, value, onChange }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isApiSupported, setIsApiSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -72,7 +73,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
   };
 
   const handleMicClick = () => {
-    if (isLoading || !isApiSupported || !recognitionRef.current) return;
+    if (isLoading || !isChatReady || !isApiSupported || !recognitionRef.current) return;
 
     if (isRecording) {
       recognitionRef.current.stop();
@@ -87,10 +88,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (safeValue.trim() && !isLoading) {
+    if (safeValue.trim() && !isLoading && isChatReady) {
       onSendMessage(safeValue);
     }
   };
+
+  const placeholderText = isChatReady ? "Type or click the mic to talk..." : "Assistant is offline...";
+  const isSendDisabled = isLoading || !isChatReady || !safeValue.trim();
+  const isMicDisabled = isLoading || !isChatReady || !isApiSupported;
+
 
   return (
       <>
@@ -174,7 +180,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
               type="text"
               value={safeValue}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="Type or click the mic to talk..."
+              placeholder={placeholderText}
               disabled={isLoading}
               className="chat-input"
               autoComplete="off"
@@ -182,7 +188,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
           <button
               type="button"
               onClick={handleMicClick}
-              disabled={isLoading || !isApiSupported}
+              disabled={isMicDisabled}
               className={`mic-button ${isRecording ? 'recording' : ''}`}
               aria-label={isRecording ? "Stop recording" : "Start recording"}
               title={isApiSupported ? 'Use microphone' : 'Voice input not supported by your browser'}
@@ -191,7 +197,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
           </button>
           <button
               type="submit"
-              disabled={isLoading || !safeValue.trim()}
+              disabled={isSendDisabled}
               className="send-button"
               aria-label="Send message"
           >

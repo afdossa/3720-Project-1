@@ -436,6 +436,7 @@ function App() {
                         <ChatInput
                             onSendMessage={handleSendMessage}
                             isLoading={isChatLoading}
+                            isChatReady={!!chat}
                             value={chatInputText}
                             onChange={setChatInputText}
                         />
