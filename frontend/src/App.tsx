@@ -26,6 +26,8 @@ export default function App() {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [chatInputText, setChatInputText] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const initRan = useRef(false);
+
 
     // --- State for UI ---
     const [activeTab, setActiveTab] = useState<ActiveTab>('events');
@@ -58,23 +60,26 @@ export default function App() {
 
     // Initialize Chat on component mount
     useEffect(() => {
-        const initializeChat = async () => {
-            try {
-                const chatSession = await initChat();
-                setChat(chatSession);
-                addMessage(
-                    MessageSender.BOT,
-                    "Hello! I'm the TigerTix Assistant. How can I help you find or book tickets for campus events today?"
-                );
-            } catch (e) {
-                console.error("Failed to initialize Gemini chat:", e);
-                addMessage(
-                    MessageSender.BOT,
-                    "Sorry, I couldn't connect to the AI assistant. Please check your API key configuration."
-                );
-            }
-        };
-        initializeChat();
+        if (initRan.current === false) {
+            const initializeChat = async () => {
+                try {
+                    const chatSession = await initChat();
+                    setChat(chatSession);
+                    addMessage(
+                        MessageSender.BOT,
+                        "Hello! I'm the TigerTix Assistant. How can I help you find or book tickets for campus events today?"
+                    );
+                } catch (e) {
+                    console.error("Failed to initialize Gemini chat:", e);
+                    addMessage(
+                        MessageSender.BOT,
+                        "Sorry, I couldn't connect to the AI assistant. Please check your API key configuration."
+                    );
+                }
+            };
+            initializeChat();
+            initRan.current = true;
+        }
     }, []);
 
 
