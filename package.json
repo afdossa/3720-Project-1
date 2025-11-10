@@ -1,0 +1,21 @@
+{
+  "name": "3720-project-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afdossa/3720-Project-1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/afdossa/3720-Project-1/issues"
+  },
+  "homepage": "https://github.com/afdossa/3720-Project-1#readme"
+}
