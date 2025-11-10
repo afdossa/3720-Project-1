@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "devDependencies": {},
+  "homepage": "https://afdossa.github.io/3720-Project-1",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,5 +22,10 @@
   "bugs": {
     "url": "https://github.com/afdossa/3720-Project-1/issues"
   },
-  "homepage": "https://github.com/afdossa/3720-Project-1#readme"
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
+    "gh-pages": "^6.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
+  }
 }
